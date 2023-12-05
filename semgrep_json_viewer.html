@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semgrep Results Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Upload Semgrep JSON File</h1>
+    <input type="file" id="fileInput">
+    <h2>Results:</h2>
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Rule ID</th>
+                <th>File</th>
+                <th>Message</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Results will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const json = JSON.parse(event.target.result);
+                    const results = json.results;
+                    const tbody = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+                    tbody.innerHTML = ''; // Clear existing rows
+
+                    results.forEach(result => {
+                        const row = tbody.insertRow();
+                        const severityClass = result.extra.severity.toLowerCase();
+
+                        row.innerHTML = `
+                            <td>${result.check_id}</td>
+                            <td>${result.path}</td>
+                            <td>${result.extra.message}</td>
+                            <td class="${severityClass}">${result.extra.severity}</td>
+                        `;
+                    });
+                } catch (e) {
+                    tbody.innerHTML = '<tr><td colspan="4">Invalid JSON!</td></tr>';
+                }
+            };
+            reader.readAsText(event.target.files[0]);
+        });
+    </script>
+</body>
+</html>
